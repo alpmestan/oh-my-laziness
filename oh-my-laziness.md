@@ -341,23 +341,27 @@ The custon `Pair` type is pretty simple.
 data Pair a b = Pair !a b
 ```
 
-Regarding `Text` and `ByteString`, since they use a similar technique for implementing the lazy variant on top of the strict one, we will just study `Text`. So here's the implementation of [Data.Text.Lazy.Text](http://hackage.haskell.org/packages/archive/text/0.11.3.1/doc/html/src/Data-Text-Lazy-Internal.html#Text):
+Regarding `Text` and `ByteString`, since they use a similar technique for implementing the lazy variant on top of the strict one, we will just study `Text`. So here's the idefinition of [Data.Text.Lazy.Text](http://hackage.haskell.org/packages/archive/text/0.11.3.1/doc/html/src/Data-Text-Lazy-Internal.html#Text):
 
 ``` haskell
 data Text = Empty
           | Chunk {-# UNPACK #-} !T.Text Text
 ```
 
-Let's skip the `{-# UNPACK #-}` pragma for now, as it is the topic of the next section and isn't our concern here. The `T.Text` field there refers to [Data.Text.Internal.Text](http://hackage.haskell.org/packages/archive/text/0.11.3.1/doc/html/Data-Text-Internal.html), a data type representing "A space efficient, packed, unboxed Unicode text type" -- this is what your usual strict Text type is. The second field refers to the type we're defining itself. Hmm, that rings a bell! That's quite close to a list, with elements of type T.Text but "strictified". That means that whenever we add another "bucket" of text to this list, it'll get evaluated (when the creation of the list will actually happen in memory). So we're operating on a list of strict texts. 
+Let's skip the `{-# UNPACK #-}` pragma for now, as it is the topic of the next section and isn't our concern here. The `T.Text` field there refers to [Data.Text.Internal.Text](http://hackage.haskell.org/packages/archive/text/0.11.3.1/doc/html/Data-Text-Internal.html), a data type representing "A space efficient, packed, unboxed Unicode text type" -- this is what your usual strict Text type is. The second field refers to the type we're defining itself. 
 
-Taking a closer look, we see that the second field of the `Chunk` constructor isn't strict though. That means that we don't necessarily require the evaluation of the whole list whenever we just access a Chunk. The remaining elements are provided on-demand, as needed, `Chunk` by `Chunk`. That provides a partial answer to the O(1) space question: we can bring the content of a file (for example) chunk by chunk in memory. The answer is completed by the fact that if you manage to have the GC free the `Chunk`s after they're used, you'll only have a handful of `Chunk`s in memory at the same time. That's however far from trivial to achieve, and is addressed by streaming libraries such as [pipes](http://hackage.haskell.org/package/pipes), [conduit](http://hackage.haskell.org/package/conduit) or [io-streams](http://hackage.haskell.org/package/io-streams).
+Hmm, that rings a bell! That's quite close to a list, with elements of type T.Text but "strictified". That means that whenever we add another "bucket" of text to this list, it'll get evaluated (when the creation of the list will actually happen in memory). So we're operating on a list of strict texts. 
+
+Taking a closer look, we see that the second field of the `Chunk` constructor isn't strict though. That means that we don't necessarily require the evaluation of the whole list whenever we just access a Chunk. The remaining elements are provided on-demand, as needed, `Chunk` by `Chunk`. 
+
+That provides a partial answer to the O(1) space question: we can bring the content of a file (for example) chunk by chunk in memory. The answer is completed by the fact that if you manage to have the garbage collector free the `Chunk`s after they're used, you'll only have a handful of `Chunk`s in memory at the same time. That's however far from trivial to achieve, and is addressed by streaming libraries such as [pipes](http://hackage.haskell.org/package/pipes), [conduit](http://hackage.haskell.org/package/conduit) or [io-streams](http://hackage.haskell.org/package/io-streams).
 @@@
 
 ## {-# UNPACK #-} and unboxed strict fields
 
 Unpacking strict fields in data types is one of the key techniques for writing efficient Haskell code. But before introducing it, let's state the problem it solves.
 
-Like in many programming languages, by default, GHC doesn't just store values. In particular, we have seen that laziness is implemented by storing a pointer to an unevaluated expression until the result is required, at which point we evaluate the expression and replace the pointer to the expression by the actual result. That requires some overhead on almost every single value you'll create. 
+Like in many programming languages, by default, GHC doesn't just store values. In particular, we have seen that laziness is implemented by storing a pointer to an unevaluated expression until the actual result is required, at which point we evaluate the expression and replace the pointer to the expression by the result. That requires some overhead on almost every single value you create. 
 
 ![Memory layout for boxed values](http://hackage.haskell.org/trac/ghc/raw-attachment/wiki/Commentary/Rts/Storage/HeapObjects/heap-object.png)
 
