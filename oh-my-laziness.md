@@ -9,14 +9,14 @@ This article gives a modest shot at explaining how to gain a better control of e
 You probably have heard that Haskell is a _call-by-need_ programming language, as opposed to _call-by-value_ like, say, C++, Python and
 most of the mainstream programming languages. That just means that for example in C++, the following function:
 
-~~~ {.cpp}
+``` cpp
 int f(int x, int y) { 
     if(x > 0)
       return x-1;
     else 
       return x+1; 
 }
-~~~
+```
 
 when called, will evaluate both its arguments, even if for example the `y` comes from a large computation that can throw exceptions or stay stuck in an infinite loop, although we can see `f` doesn't actually use `y`. An equivalent function in Haskell would be the following:
 
@@ -54,14 +54,14 @@ const x y = x
 
 You should however keep in mind that most languages aren't entirely strict/lazy/non-strict. The `||` operator in C++ for example isn't strict in its second argument. That is, in
 
-~~~ {.cpp}
+``` cpp
 bool big_computation();
 
 if (true || big_computation())
 {
 	...
 }
-~~~
+```
 
 the compiler will see that the first argument is true and the `big_computation` will hence usually be short-circuited. For an overview of different _evaluation strategies_, you may want to head to [this wikipedia page](http://en.wikipedia.org/wiki/Evaluation_strategy "Evaluation Strategy").
 
@@ -390,7 +390,7 @@ You can see that here, all fields are marked with a `!`, but you can specify som
 
 ### Exercises
 
-Here's some food for thought, with the answers right after the block of questions, in the "Show more" thingy.
+Here's some food for thought, with the answers right after the block of questions.
 
 - For example, you may want a hand-rolled `Pair` data type whose first component is strict and whose second component isn't. How would you do it? 
 - Have you ever wondered what exactly made strict and lazy ByteStrings respectively strict and lazy? The same question holds for Text too. The lazy variant for both uses "chunks". Can you tell what's going on using our intuition so far and the hadoocks for [Data.ByteString.Lazy](http://hackage.haskell.org/packages/archive/bytestring/0.10.2.0/doc/html/Data-ByteString-Lazy.html) and  [Data.Text.Lazy](http://hackage.haskell.org/packages/archive/text/0.11.3.1/doc/html/Data-Text-Lazy.html)? How does this bring O(1) space when used accordingly?
@@ -398,6 +398,7 @@ Here's some food for thought, with the answers right after the block of question
 #### Answers
 
 The custon `Pair` type is pretty simple.
+
 ``` haskell
 data Pair a b = Pair !a b
 ```
