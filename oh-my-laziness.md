@@ -377,7 +377,7 @@ data Matrix2 = M2 !Double !Double !Double !Double
 
 That's it! I will let you check that the fields indeed get evaluated when we create a value of type `Matrix2` by creating a matrix whose coefficients are all equal to `product [1..]`.
 
-``` active haskell
+``` haskell
 data Matrix2 = M2 !Double !Double !Double !Double deriving Show
 
 main = do
